@@ -17,10 +17,12 @@ def iterate_logistic(r, x0, n):
     返回:
         x: 迭代序列数组
     """
-    x = np.zeros(n)
+        x = np.empty(n)  # 改用empty提高初始化效率
     x[0] = x0
+    prev = x0  # 使用局部变量减少数组访问
     for i in range(1, n):
-        x[i] = r * x[i-1] * (1 - x[i-1])
+        prev = r * prev * (1 - prev)
+        x[i] = prev
     return x
 
 def plot_time_series(r, x0, n):
@@ -36,14 +38,15 @@ def plot_time_series(r, x0, n):
         fig: matplotlib图像对象
     """
     x = iterate_logistic(r, x0, n)
+
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.plot(x, 'b-', label=f'r = {r}')
-    ax.set_title(f'Logistic Map Time Series (r = {r})')
-    ax.set_xlabel('Iteration')
-    ax.set_ylabel('x')
-    ax.legend()
-    ax.grid(True)
+    ax.plot(x, 'navy', lw=1, alpha=0.8)  # 修改颜色和透明度
+    ax.set(xlabel='迭代次数', ylabel='x',
+           title=f'Logistic映射时间序列 (r={r})')
+    ax.grid(True, ls='--', alpha=0.6)  # 优化网格显示
+    fig.tight_layout()
     return fig
+   
 
 def plot_bifurcation(r_min, r_max, n_r, n_iterations, n_discard):
     """
@@ -59,24 +62,20 @@ def plot_bifurcation(r_min, r_max, n_r, n_iterations, n_discard):
     返回:
         fig: matplotlib图像对象
     """
-    r_values = np.linspace(r_min, r_max, n_r)
-    x = np.zeros(n_iterations)
-    bifurcation_data = []
+        for i, r in enumerate(r_values):
+        x = np.empty(n_iterations)
+        x[0] = 0.5
+        for j in range(1, n_iterations):
+            x[j] = r * x[j - 1] * (1 - x[j - 1])
+        data[i] = x[n_discard:]
 
-    for r in r_values:
-        x[0] = np.random.random()  # 随机初始值
-        for i in range(1, n_iterations):
-            x[i] = r * x[i-1] * (1 - x[i-1])
-        # 丢弃前n_discard个点，保留后面的点
-        bifurcation_data.append((r, x[n_discard:]))
-
-    fig, ax = plt.subplots(figsize=(10, 6))
-    for r, x_vals in bifurcation_data:
-        ax.plot([r] * len(x_vals), x_vals, ',k', alpha=0.25, markersize=1)
-    ax.set_title('Logistic Map Bifurcation Diagram')
-    ax.set_xlabel('r')
-    ax.set_ylabel('x')
-    ax.grid(True)
+    fig, ax = plt.subplots(figsize=(12, 8))
+    ax.plot(np.repeat(r_values, keep), data.ravel(),
+            ',', c='teal', alpha=0.15, markersize=0.8)  # 优化颜色和标记
+    ax.set(xlabel='r', ylabel='x',
+           title='Logistic映射分岔图')
+    ax.set_xlim(r_min, r_max)
+    fig.tight_layout()
     return fig
 
 def main():
