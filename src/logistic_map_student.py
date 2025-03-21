@@ -1,5 +1,47 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import rcParams
+
+# 添加字体配置（在函数外只需设置一次）
+rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'WenQuanYi Zen Hei']  # 中文字体优先级列表
+rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
+
+def plot_bifurcation(r_min, r_max, n_r, n_iterations, n_discard):
+    """
+    绘制分岔图（修复中文显示版本）
+    """
+    r_values = np.linspace(r_min, r_max, n_r)
+    keep = n_iterations - n_discard
+    data = np.empty((n_r, keep))
+    
+    for i, r in enumerate(r_values):
+        x = np.empty(n_iterations)
+        x[0] = 0.5
+        for j in range(1, n_iterations):
+            x[j] = r * x[j-1] * (1 - x[j-1])
+        data[i] = x[n_discard:]
+    
+    fig, ax = plt.subplots(figsize=(12, 8))
+    
+    # 显式指定字体属性（双保险）
+    font_prop = {'family': 'sans-serif',
+                 'fontname': 'SimHei',
+                 'size': 12}
+    
+    ax.plot(np.repeat(r_values, keep), data.ravel(), 
+           ',', c='teal', alpha=0.15, markersize=0.8)
+    ax.set(xlabel='r', ylabel='x', 
+          title='Logistic映射分岔图', **font_prop)  # 应用字体设置
+    ax.set_xlim(r_min, r_max)
+    
+    # 保存时确保字体嵌入
+    fig.savefig("bifurcation.png", 
+                dpi=300, 
+                bbox_inches='tight', 
+                facecolor='white')
+    return fig
+
+
 
 def iterate_logistic(r, x0, n):
     """
