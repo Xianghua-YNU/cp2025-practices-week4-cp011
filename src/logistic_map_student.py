@@ -17,7 +17,11 @@ def iterate_logistic(r, x0, n):
     返回:
         x: 迭代序列数组
     """
-    pass
+    x = np.zeros(n)
+    x[0] = x0
+    for i in range(1, n):
+        x[i] = r * x[i-1] * (1 - x[i-1])
+    return x
 
 def plot_time_series(r, x0, n):
     """
@@ -31,7 +35,15 @@ def plot_time_series(r, x0, n):
     返回:
         fig: matplotlib图像对象
     """
-    pass
+    x = iterate_logistic(r, x0, n)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(x, 'b-', label=f'r = {r}')
+    ax.set_title(f'Logistic Map Time Series (r = {r})')
+    ax.set_xlabel('Iteration')
+    ax.set_ylabel('x')
+    ax.legend()
+    ax.grid(True)
+    return fig
 
 def plot_bifurcation(r_min, r_max, n_r, n_iterations, n_discard):
     """
@@ -47,7 +59,25 @@ def plot_bifurcation(r_min, r_max, n_r, n_iterations, n_discard):
     返回:
         fig: matplotlib图像对象
     """
-    pass
+    r_values = np.linspace(r_min, r_max, n_r)
+    x = np.zeros(n_iterations)
+    bifurcation_data = []
+
+    for r in r_values:
+        x[0] = np.random.random()  # 随机初始值
+        for i in range(1, n_iterations):
+            x[i] = r * x[i-1] * (1 - x[i-1])
+        # 丢弃前n_discard个点，保留后面的点
+        bifurcation_data.append((r, x[n_discard:]))
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    for r, x_vals in bifurcation_data:
+        ax.plot([r] * len(x_vals), x_vals, ',k', alpha=0.25, markersize=1)
+    ax.set_title('Logistic Map Bifurcation Diagram')
+    ax.set_xlabel('r')
+    ax.set_ylabel('x')
+    ax.grid(True)
+    return fig
 
 def main():
     """主函数"""
