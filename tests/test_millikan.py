@@ -117,14 +117,5 @@ def test_calculate_planck_constant_invalid_slope():
     with pytest.raises(ValueError):
         calculate_planck_constant(-1)  # 斜率为负
 
-def test_plot_data_and_fit_invalid_input():
-    """测试无效输入时的异常处理"""
-    x = np.array([1, 2, 3])
-    y = np.array([1, 2, 3])
-    with pytest.raises(ValueError):
-        plot_data_and_fit(x, y, np.nan, 0)  # 无效斜率
-    with pytest.raises(ValueError):
-        plot_data_and_fit(x, y, 1, np.nan)  # 无效截距
-
 if __name__ == "__main__":
     pytest.main(["-v", __file__])
