@@ -12,6 +12,9 @@ beta = 0.1
 def viral_load(t, A, alpha, beta):
     return A * np.exp(-alpha * t) + beta * np.exp(-beta * t)
 
+# 计算病毒载量	
+viral_load_values = viral_load(time, A, alpha, beta)
+
 # 使用不同的模型参数绘制图像
 plt.figure(figsize=(10, 6))
 plt.plot(time, viral_load(time, 1000, 0.3, 0.1), label='A=1000, alpha=0.3, beta=0.1')
