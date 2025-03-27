@@ -2,35 +2,40 @@ import numpy as np
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
  
-# 定义微分方程
-def hiv_model(y, t, beta, gamma):
-    S, I, R = y
-    dSdt = -beta * S * I
-    dIdt = beta * S * I - gamma * I
-    dRdt = gamma * I
-    return [dSdt, dIdt, dRdt]
+# 定义模型方程的函数
+def hiv_model(y, t, beta, delta, mu, gamma):
+    V, T = y
+    dVdt = beta * V * T - delta * V  # 病毒复制和清除的动态平衡
+    dTdt = -gamma * V * T + mu * T   # CD4细胞死亡和被病毒感染的动态平衡
+    return [dVdt, dTdt]
  
-# 初始条件
-initial_conditions = [990, 10, 0]  # 易感者990，感染者10，移除者0
+# 参数设定
+beta = 0.5  # 病毒复制速率
+delta = 0.1 # 病毒清除速率
+mu = 0.01   # CD4细胞自然死亡速率
+gamma = 0.02 # CD4细胞被病毒杀死的速率
+initial_conditions = [100, 1000]  # 初始病毒数量和CD4细胞数量
+t = np.linspace(0, 100, 1000)  # 时间范围
  
-# 参数
-beta = 0.00005  # 感染率
-gamma = 0.01    # 康复率
+# 解ODEs
+solution = odeint(hiv_model, initial_conditions, t, args=(beta, delta, mu, gamma))
+V, T = solution.T
  
-# 时间点
-t = np.linspace(0, 100, 100)  # 从0到100天，共100个时间点
- 
-# 解微分方程
-solution = odeint(hiv_model, initial_conditions, t, args=(beta, gamma))
- 
-# 绘制结果
-plt.figure(figsize=(10, 6))
-plt.plot(t, solution[:, 0], label='Susceptible')
-plt.plot(t, solution[:, 1], label='Infected')
-plt.plot(t, solution[:, 2], label='Recovered/Dead')
-plt.xlabel('Time (days)')
-plt.ylabel('Population')
+# 绘图展示结果
+plt.figure(figsize=(10, 5))
+plt.subplot(121)
+plt.plot(t, V, label='Virus load')
+plt.xlabel('Time')
+plt.ylabel('Virus number')
+plt.title('HIV Virus Load Over Time')
 plt.legend()
-plt.title('HIV Virus Load Model')
-plt.grid(True)
+ 
+plt.subplot(122)
+plt.plot(t, T, label='CD4 Cells')
+plt.xlabel('Time')
+plt.ylabel('CD4 Cell number')
+plt.title('CD4 Cell Count Over Time')
+plt.legend()
+ 
+plt.tight_layout()
 plt.show()
