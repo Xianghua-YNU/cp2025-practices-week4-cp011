@@ -37,19 +37,33 @@ V, T = solution.T
  
 # 绘图展示结果
 plt.figure(figsize=(10, 5))
+
 plt.subplot(121)
+
 plt.plot(t, V, label='Virus load')
+
 plt.xlabel('Time')
+
 plt.ylabel('Virus number')
+
 plt.title('HIV Virus Load Over Time')
+
 plt.legend()
  
+
 plt.subplot(122)
+
 plt.plot(t, T, label='CD4 Cells')
+
 plt.xlabel('Time')
+
 plt.ylabel('CD4 Cell number')
+
 plt.title('CD4 Cell Count Over Time')
+
 plt.legend()
+
  
 plt.tight_layout()
+
 plt.show()
