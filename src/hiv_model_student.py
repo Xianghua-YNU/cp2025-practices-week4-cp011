@@ -7,11 +7,11 @@ import matplotlib.pyplot as plt
 # 生成时间序列
 time = np.linspace(0, 1, 11)
 
-# 定义模型参数
-A = 1
-a = 0.1
-B = 0.5
-beta = 0.05
+# 定义模型参数：
+  A = 1
+  a = 0.1
+  B = 0.5
+  beta = 0.05
 
 # 计算病毒载量
 viral_load = A * np.exp(-a * time) + B * np.exp(-beta * time)
