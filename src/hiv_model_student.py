@@ -6,6 +6,9 @@ import pandas as pd
 time = np.linspace(0, 1, 11)
 
 # 定义模型参数
+A = 1000	
+alpha = 0.3	
+beta = 0.1
 def viral_load(t, A, alpha, beta):
     return A * np.exp(-alpha * t) + beta * np.exp(-beta * t)
 
