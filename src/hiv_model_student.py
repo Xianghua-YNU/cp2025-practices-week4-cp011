@@ -3,22 +3,22 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.optimize import curve_fit
 
-# 1.1 探索模型
-# 生成时间序列
-time = np.linspace(0, 10, 100)
 
-# 定义模型参数
-A = 1
-a = 0.1
-B = 0.5
-beta = 0.05
+ 生成时间序列：
+   time = np.linspace(0, 10, 100)
 
-# 定义病毒载量模型
-def viral_load_model(t, A, a, B, beta):
-    return A * np.exp(-a * t) + B * np.exp(-beta * t)
+ 定义模型参数：
+  A = 1
+  a = 0.1
+  B = 0.5
+  beta = 0.05
 
-# 计算病毒载量
-viral_load = viral_load_model(time, A, a, B, beta)
+ 定义病毒载量模型：
+  def viral_load_model(t, A, a, B, beta):
+      return A * np.exp(-a * t) + B * np.exp(-beta * t)
+
+ 计算病毒载量：
+  viral_load = viral_load_model(time, A, a, B, beta)
 
 # 绘制图形
 plt.figure(figsize=(10, 6))
