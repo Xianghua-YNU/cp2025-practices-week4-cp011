@@ -1,3 +1,5 @@
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -50,3 +52,6 @@ plt.ylabel('Viral Load')
 plt.legend()
 plt.grid(True)
 plt.show()
+
+if __name__ == "__main__":
+    main()
