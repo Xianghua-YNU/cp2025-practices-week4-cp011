@@ -1,87 +1,80 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
-from scipy.optimize import curve_fit
 
+def random_walk_2d(steps):
+    """生成二维随机行走轨迹
 
- 生成时间序列：
-   time = np.linspace(0, 10, 100)
+    参数:
+        steps (int): 随机行走的步数
 
- 定义模型参数：
-   A = 1
-   a = 0.1
-   B = 0.5
-   beta = 0.05
+    返回:
+        tuple: 包含x和y坐标序列的元组 (x_coords, y_coords)
+    """
+    x_coords = np.cumsum(np.random.choice([-1, 1], size=steps))
+    y_coords = np.cumsum(np.random.choice([-1, 1], size=steps))
+    return (x_coords, y_coords)
 
- 定义病毒载量模型：
-  def viral_load_model(t, A, a, B, beta):
-      return A * np.exp(-a * t) + B * np.exp(-beta * t)
+def plot_single_walk(path):
+    """绘制单个随机行走轨迹
 
- 计算病毒载量：
-  viral_load = viral_load_model(time, A, a, B, beta)
+    参数:
+        path (tuple): 包含x和y坐标序列的元组
+    """
+    x_coords, y_coords = path
+    plt.figure(figsize=(8, 6))
+    plt.plot(x_coords, y_coords, marker='o')
+    plt.scatter(x_coords[0], y_coords[0], color='red', label='Start')
+    plt.scatter(x_coords[-1], y_coords[-1], color='blue', label='End')
+    plt.axis('equal')
+    plt.legend()
+    plt.show()
 
-# 绘制图形
-  plt.figure(figsize=(10, 6))
-  plt.plot(time, viral_load, label='Viral Load Model')
-  plt.title('Viral Load Over Time')
-  plt.xlabel('Time (days)')
-  plt.ylabel('Viral Load')
-  plt.legend()
-  plt.grid(True)
-  plt.show()
+def plot_multiple_walks():
+    """在2x2子图中绘制四个不同的随机行走轨迹"""
+    plt.figure(figsize=(10, 8))
+    for i in range(1, 5):
+        plt.subplot(2, 2, i)
+        path = random_walk_2d(100)
+        plot_single_walk(path)
+        plt.title(f'Random Walk {i}')
 
-# 1.2 拟合实验数据
-# 假设我们有实验数据
-# 这里我们使用随机生成的数据来模拟实验数据
-  np.random.seed(0)
-  time_data = np.linspace(0, 10, 20)
-  viral_load_data = viral_load_model(time_data, A, a, B, beta) + np.random.normal(0, 0.1, size=time_data.shape)
+def plot_viral_load(time, viral_load, alpha=0.5, beta=0.1):
+    """绘制病毒载量随时间变化的图像"""
+    plt.figure(figsize=(8, 6))
+    plt.plot(time, viral_load, marker='o')
+    plt.xlabel('Time')
+    plt.ylabel('Viral Load')
+    plt.title('Viral Load over Time')
+    plt.show()
 
-# 使用curve_fit进行参数拟合
-  params, covariance = curve_fit(viral_load_model, time_data, viral_load_data, p0=[1, 0.1, 0.5, 0.05])
+def load_data(file_path):
+    """加载数据"""
+    data = pd.read_csv(file_path)
+    return data
 
-# 打印拟合参数
-  A_fit, a_fit, B_fit, beta_fit = params
-  print(f"Fitted Parameters: A={A_fit}, a={a_fit}, B={B_fit}, beta={beta_fit}")
+def main():
+    # 生成时间序列
+    time = np.linspace(0, 1, 11)
 
-# 绘制拟合曲线
-  viral_load_fit = viral_load_model(time_data, *params)
-  plt.figure(figsize=(10, 6))
-  plt.plot(time_data, viral_load_data, 'o', label='Data')
-  plt.plot(time_data, viral_load_fit, '-', label='Fit')
-  plt.title('Viral Load Data and Fit')
-  plt.xlabel('Time (days)')
-  plt.ylabel('Viral Load')
-  plt.legend()
-  plt.grid(True)
-  plt.show()
+    # 生成病毒载量数据
+    viral_load = np.zeros_like(time)
+    for i in range(1, len(time)):
+        viral_load[i] = viral_load[i-1] + alpha * np.exp(-alpha * time[i-1]) + beta * np.exp(-beta * time[i-1])
 
-# 从文件中读取数据
-# 假设数据文件名为HIVseries.csv
-# HIVseries.csv文件包含两列：time_in_days和viral_load
-  data = pd.read_csv('HIVseries.csv')
-  time_data_file = data['time_in_days'].values
-  viral_load_data_file = data['viral_load'].values
+    # 绘制病毒载量随时间变化的图像
+    plot_viral_load(time, viral_load)
 
-# 使用curve_fit进行参数拟合
-  params_file, covariance_file = curve_fit(viral_load_model, time_data_file, viral_load_data_file, p0=[1, 0.1, 0.5, 0.05])
+    # 加载实验数据
+    hiv_data = load_data('HIVseries.csv')
 
-# 打印拟合参数
-  A_fit_file, a_fit_file, B_fit_file, beta_fit_file = params_file
-  print(f"Fitted Parameters from File: A={A_fit_file}, a={a_fit_file}, B={B_fit_file}, beta={beta_fit_file}")
-
-# 绘制拟合曲线
-  viral_load_fit_file = viral_load_model(time_data_file, *params_file)
-  plt.figure(figsize=(10, 6))
-  plt.plot(time_data_file, viral_load_data_file, 'o', label='Data from File')
-  plt.plot(time_data_file, viral_load_fit_file, '-', label='Fit from File')
-  plt.title('Viral Load Data and Fit from File')
-  plt.xlabel('Time (days)')
-  plt.ylabel('Viral Load')
-  plt.legend()
-  plt.grid(True)
-  plt.show()
+    # 绘制实验数据
+    plt.figure(figsize=(10, 6))
+    plt.plot(hiv_data['time_in_days'], hiv_data['viral_load'], marker='o')
+    plt.xlabel('Time (days)')
+    plt.ylabel('Viral Load')
+    plt.title('Experimental HIV Data')
+    plt.show()
 
 if __name__ == "__main__":
-    # 运行主函数
     main()
