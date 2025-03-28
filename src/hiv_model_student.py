@@ -1,81 +1,98 @@
-import matplotlib.pyplot as plt
+
+
 import numpy as np
-import pandas as pd
+import matplotlib.pyplot as plt
 
-def random_walk_2d(steps):
-    """生成二维随机行走轨迹
+# 1.1 探索模型
+time = np.linspace(0, 1, 11)
 
-    参数:
-        steps (int): 随机行走的步数
+# 定义不同的参数组合并绘制模型曲线
+plt.figure(figsize=(10, 6))
+params = [
+    {'A': 1000, 'B': 500, 'alpha': 5, 'beta': 1},
+    {'A': 800, 'B': 200, 'alpha': 2, 'beta': 0.5},
+    {'A': 1500, 'B': 300, 'alpha': 10, 'beta': 0.1},
+    {'A': 500, 'B': 100, 'alpha': 3, 'beta': 0.3}
+]
 
-    返回:
-        tuple: 包含x和y坐标序列的元组 (x_coords, y_coords)
-    """
-    x_coords = np.cumsum(np.random.choice([-1, 1], size=steps))
-    y_coords = np.cumsum(np.random.choice([-1, 1], size=steps))
-    return (x_coords, y_coords)
+for param in params:
+    viral_load = param['A'] * np.exp(-param['alpha'] * time) + param['B'] * np.exp(-param['beta'] * time)
+    plt.plot(time, viral_load, label=f"A={param['A']}, α={param['alpha']}\nB={param['B']}, β={param['beta']}")
 
-def plot_single_walk(path):
-    """绘制单个随机行走轨迹
+plt.xlabel('Time')
+plt.ylabel('Viral Load')
+plt.title('Model Exploration with Different Parameters')
+plt.legend()
+plt.show()
 
-    参数:
-        path (tuple): 包含x和y坐标序列的元组
-    """
-    x_coords, y_coords = path
-    plt.figure(figsize=(8, 6))
-    plt.plot(x_coords, y_coords, marker='o')
-    plt.scatter(x_coords[0], y_coords[0], color='red', label='Start')
-    plt.scatter(x_coords[-1], y_coords[-1], color='blue', label='End')
-    plt.axis('equal')
-    plt.legend()
-    plt.show()
+# 1.2 导入实验数据并绘制散点图
+# 假设数据文件为CSV格式
+hiv_data = np.loadtxt('HIVseries.csv', delimiter=',')
+time_days = hiv_data[:, 0]
+viral_load_data = hiv_data[:, 1]
 
-def plot_multiple_walks():
-    """在2x2子图中绘制四个不同的随机行走轨迹"""
-    plt.figure(figsize=(10, 8))
-    for i in range(1, 5):
-        plt.subplot(2, 2, i)
-        path = random_walk_2d(100)
-        plot_single_walk(path)
-        plt.title(f'Random Walk {i}')
+plt.figure(figsize=(10, 6))
+plt.scatter(time_days, viral_load_data, marker='o', color='blue', label='Experimental Data')
+plt.xlabel('Time (days)')
+plt.ylabel('Viral Load')
+plt.title('Experimental HIV Viral Load Over Time')
+plt.legend()
+plt.show()
 
-def plot_viral_load(time, viral_load, alpha=0.5, beta=0.1):
-    """绘制病毒载量随时间变化的图像"""
-    plt.figure(figsize=(8, 6))
-    plt.plot(time, viral_load, marker='o')
-    plt.xlabel('Time')
-    plt.ylabel('Viral Load')
-    plt.title('Viral Load over Time')
-    plt.show()
+# 作业a: 手动调整参数并叠加模型
+A = 150000
+B = 50000
+alpha = 0.8
+beta = 0.05
 
-def load_data(file_path):
-    """加载数据"""
-    data = pd.read_csv(file_path)
-    return data
+model_time = np.linspace(0, max(time_days), 100)
+model_viral = A * np.exp(-alpha * model_time) + B * np.exp(-beta * model_time)
 
-def main():
-    # 生成时间序列
-    time = np.linspace(0, 1, 11)
+plt.figure(figsize=(10, 6))
+plt.scatter(time_days, viral_load_data, label='Experimental Data')
+plt.plot(model_time, model_viral, 'r-', label=f'Model: A={A}, B={B}\nα={alpha}, β={beta}')
+plt.xlabel('Time (days)')
+plt.ylabel('Viral Load')
+plt.title('Manual Parameter Adjustment for Model Fitting')
+plt.legend()
+plt.show()
 
-    # 生成病毒载量数据
-    viral_load = np.zeros_like(time)
-    for i in range(1, len(time)):
-        viral_load[i] = viral_load[i-1] + alpha * np.exp(-alpha * time[i-1]) + beta * np.exp(-beta * time[i-1])
+# 作业b: 通过长期数据估计参数并调整剩余参数
+# 选择时间较大的数据点进行拟合
+threshold = 7  # 根据数据分布调整阈值
+mask = time_days > threshold
+t_long = time_days[mask]
+v_long = viral_load_data[mask]
 
-    # 绘制病毒载量随时间变化的图像
-    plot_viral_load(time, viral_load)
+# 对数线性回归拟合长期趋势
+log_v = np.log(v_long)
+coeffs = np.polyfit(t_long, log_v, 1)
+beta_est = -coeffs[0]
+B_est = np.exp(coeffs[1])
 
-    # 加载实验数据
-    hiv_data = load_data('HIVseries.csv')
+# 计算初始值A
+A_est = viral_load_data[0] - B_est
 
-    # 绘制实验数据
-    plt.figure(figsize=(10, 6))
-    plt.plot(hiv_data['time_in_days'], hiv_data['viral_load'], marker='o')
-    plt.xlabel('Time (days)')
-    plt.ylabel('Viral Load')
-    plt.title('Experimental HIV Data')
-    plt.show()
+# 调整alpha参数
+alpha_est = 0.7  # 通过观察数据调整
 
-if __name__ == "__main__":
-    main()
+model_viral_refined = A_est * np.exp(-alpha_est * model_time) + B_est * np.exp(-beta_est * model_time)
 
+plt.figure(figsize=(10, 6))
+plt.scatter(time_days, viral_load_data, label='Experimental Data')
+plt.plot(model_time, model_viral_refined, 'g-', 
+         label=f'Refined Model: A={A_est:.0f}, B={B_est:.0f}\nα={alpha_est}, β={beta_est:.3f}')
+plt.xlabel('Time (days)')
+plt.ylabel('Viral Load')
+plt.title('Semi-Automated Parameter Estimation')
+plt.legend()
+plt.show()
+
+# 作业c: 计算1/α并与潜伏期比较
+latency_period = 10 * 365  # 十年潜伏期（天）
+alpha_inverse = 1 / alpha_est
+
+print(f"1/α = {alpha_inverse:.1f} days")
+print(f"HIV潜伏期: {latency_period} days")
+print("结论: T细胞感染率的倒数远小于潜伏期" if alpha_inverse < latency_period 
+      else "结论: 1/α大于潜伏期（需要重新检查参数）")
