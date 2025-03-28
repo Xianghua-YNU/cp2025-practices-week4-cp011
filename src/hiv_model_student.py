@@ -1,83 +1,98 @@
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 
 # 1.1 探索模型
-# 生成时间序列
-time = np.linspace(0, 10, 100)  # 更精细的时间序列
+time = np.linspace(0, 1, 11)  
 
-# 设置模型参数
-A = 1000    # 初始参数值
-B = 500     # 初始参数值
-alpha = 0.5 # 初始参数值
-beta = 0.1  # 初始参数值
-
-# 计算病毒载量
-viral_load = A * np.exp(-alpha * time) + B * np.exp(-beta * time)
-
-# 绘制病毒载量随时间变化的图表
+# 定义不同的参数组合并绘制模型曲线
 plt.figure(figsize=(10, 6))
-plt.plot(time, viral_load, label='V(t) = A*exp(-αt) + B*exp(-βt)')
-plt.xlabel('时间 (天)')
-plt.ylabel('病毒载量')
-plt.title('HIV 病毒载量随时间变化')
+params = [
+    {'A': 1000, 'B': 500, 'alpha': 5, 'beta': 1},
+    {'A': 800, 'B': 200, 'alpha': 2, 'beta': 0.5},
+    {'A': 1500, 'B': 300, 'alpha': 10, 'beta': 0.1},
+    {'A': 500, 'B': 100, 'alpha': 3, 'beta': 0.3}
+]
+
+for param in params:
+    viral_load = param['A'] * np.exp(-param['alpha'] * time) + param['B'] * np.exp(-param['beta'] * time)
+    plt.plot(time, viral_load, label=f"A={param['A']}, α={param['alpha']}\nB={param['B']}, β={param['beta']}")
+
+plt.xlabel('Time')
+plt.ylabel('Viral Load')-
+plt.title('Model Exploration with Different Parameters'）
 plt.legend()
-plt.grid(True)
 plt.show()
 
-# 1.2 拟合实验数据
-# 加载实验数据
-data = np.loadtxt('HIVseries.csv', delimiter=',', skiprows=1)  # 假设 CSV 文件格式
-# 或者使用 NPZ 文件
-# data = np.load('HIVseries.npz')
-# time_data = data['time_in_days']
-# viral_load_data = data['viral_load']
-
-# 提取时间和病毒载量数据
-time_data = data[:, 0]
-viral_load_data = data[:, 1]
-
-# 绘制实验数据点
-plt.figure(figsize=(10, 6))
-plt.scatter(time_data, viral_load_data, color='red', label='实验数据')
-plt.xlabel('时间 (天)')
-plt.ylabel('病毒载量')
-plt.title('HIV 病毒载量实验数据')
-plt.legend()
-plt.grid(True)
-plt.show()
-
-# 作业 a: 在方程的函数图上叠加实验数据点
-plt.figure(figsize=(10, 6))
-plt.plot(time, viral_load, label='模型预测')
-plt.scatter(time_data, viral_load_data, color='red', label='实验数据')
-plt.xlabel('时间 (天)')
-plt.ylabel('病毒载量')
-plt.title('模型预测与实验数据对比')
-plt.legend()
-plt.grid(True)
-plt.show()
-
-# 作业 b: 调整模型参数
-# 这里需要手动调整参数，直到模型与数据一致
-# 例如：
-A = 800
-B = 300
-alpha = 0.3
-beta = 0.05
-
-viral_load_adjusted = A * np.exp(-alpha * time) + B * np.exp(-beta * time)
+# 1.2 导入实验数据并绘制散点图
+# 假设数据文件为CSV格式
+hiv_data = np.loadtxt('HIVseries.csv', delimiter=',')
+time_days = hiv_data[:, 0]
+viral_load_data = hiv_data[:, 1]
 
 plt.figure(figsize=(10, 6))
-plt.plot(time, viral_load_adjusted, label='调整后的模型')
-plt.scatter(time_data, viral_load_data, color='red', label='实验数据')
-plt.xlabel('时间 (天)')
-plt.ylabel('病毒载量')
-plt.title('调整后的模型与实验数据对比')
+plt.scatter(time_days, viral_load_data, marker='o', color='blue', label='Experimental Data')
+plt.xlabel('Time (days)')
+plt.ylabel('Viral Load')
+plt.title('Experimental HIV Viral Load Over Time')
 plt.legend()
-plt.grid(True)
 plt.show()
 
-# 作业 c: 分析潜伏期与 1/α 的关系
-# 根据调整后的参数计算 1/α
-latent_period = 1 / alpha
-print(f"T 细胞感染率的倒数 1/α: {latent_period} 天")
+# 作业a: 手动调整参数并叠加模型
+ A = 150000
+ B = 50000
+ alpha = 0.8
+ beta = 0.05
+ 
+ model_time = np.linspace(0, max(time_days), 100)
+ model_viral = A * np.exp(-alpha * model_time) + B * np.exp(-beta * model_time)
+ 
+ plt.figure(figsize=(10, 6))
+ plt.scatter(time_days, viral_load_data, label='Experimental Data')
+ plt.plot(model_time, model_viral, 'r-', label=f'Model: A={A}, B={B}\nα={alpha}, β={beta}')
+ plt.xlabel('Time (days)')
+ plt.ylabel('Viral Load')
+ plt.title('Manual Parameter Adjustment for Model Fitting')
+ plt.legend()
+ plt.show()
+
+ # 作业b: 通过长期数据估计参数并调整剩余参数
+ # 选择时间较大的数据点进行拟合
+ threshold = 7  # 根据数据分布调整阈值
+ mask = time_days > threshold
+ t_long = time_days[mask]
+ v_long = viral_load_data[mask]
+ 
+ # 对数线性回归拟合长期趋势
+ log_v = np.log(v_long)
+ coeffs = np.polyfit(t_long, log_v, 1)
+ beta_est = -coeffs[0]
+ B_est = np.exp(coeffs[1])
+ 
+ # 计算初始值A
+ A_est = viral_load_data[0] - B_est
+ 
+ # 调整alpha参数
+ alpha_est = 0.7  # 通过观察数据调整
+
+ model_viral_refined = A_est * np.exp(-alpha_est * model_time) + B_est * np.exp(-beta_est * model_time)
+
+ plt.figure(figsize=(10, 6))
+ plt.scatter(time_days, viral_load_data, label='Experimental Data')
+ plt.plot(model_time, model_viral_refined, 'g-', 
+          label=f'Refined Model: A={A_est:.0f}, B={B_est:.0f}\nα={alpha_est}, β={beta_est:.3f}')
+ plt.xlabel('Time (days)')
+ plt.ylabel('Viral Load')
+ plt.title('Semi-Automated Parameter Estimation')
+ plt.legend()
+ plt.show()
+
+ # 作业c: 计算1/α并与潜伏期比较
+ latency_period = 10 * 365  # 十年潜伏期（天）
+ alpha_inverse = 1 / alpha_est
+ 
+ print(f"1/α = {alpha_inverse:.1f} days")
+ print(f"HIV潜伏期: {latency_period} days")
+ print("结论: T细胞感染率的倒数远小于潜伏期" if alpha_inverse < latency_period 
+ else "结论: 1/α大于潜伏期（需要重新检查参数）")
