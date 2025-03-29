@@ -27,7 +27,7 @@ plt.show()
 
 # 1.2 导入实验数据并绘制散点图
 # 假设数据文件为CSV格式
-hiv_data = np.loadtxt('C:\Users\dj\Downloads\HIVseries.csv', delimiter=',')
+hiv_data = np.loadtxt('HIVseries.csv', delimiter=',')
 time_days = hiv_data[:, 0]
 viral_load_data = hiv_data[:, 1]
 
